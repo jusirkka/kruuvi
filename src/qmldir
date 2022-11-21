@@ -1,0 +1,2 @@
+module kvanttiapina.kruuvi.private
+plugin plasmoid_plugin_db_reader

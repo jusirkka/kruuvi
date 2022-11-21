@@ -1,0 +1,15 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "jukka.sirkka@iki.fi",
+                "Name": "Jukka Sirkka"
+            }
+        ],
+        "Category": "Environment and Weather",
+        "Description": "Ruuvitag meteoronomy information",
+        "Id": "ruuvimonitor",
+        "Name": "Ruuvi Monitor",
+        "Website": "https://github.com/jusirkka"
+    }
+}

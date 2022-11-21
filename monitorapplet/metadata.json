@@ -1,0 +1,25 @@
+{
+  "KPlugin": {
+    "Name": "RuuviTag Monitor",
+    "Description": "Display weather data from your RuuviTag sensors",
+    "Icon": "ruuvitag",
+    "Authors": [
+      {
+        "Name": "Jukka Sirkka",
+        "Email": "jukka.sirkka@iki.fi"
+      }
+    ],
+    "Category": "Environment and Weather",
+    "EnabledByDefault": "true",
+    "License": "GPLv3",
+    "Id": "kvanttiapina.kruuvi.monitor",
+    "Version": "0.1",
+    "Website": "https://github.com/jusirkka/kruuvi",
+    "Icon": "ruuvitag",
+    "ServiceTypes": [
+      "Plasma/Applet"
+    ]
+  },
+  "X-Plasma-API": "declarativeappletscript",
+  "X-Plasma-MainScript": "ui/main.qml"
+}
