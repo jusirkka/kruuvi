@@ -13,7 +13,7 @@
     "EnabledByDefault": "true",
     "License": "GPLv3",
     "Id": "kvanttiapina.kruuvi.monitor",
-    "Version": "0.1",
+    "Version": "0.8",
     "Website": "https://github.com/jusirkka/kruuvi",
     "Icon": "ruuvitag",
     "ServiceTypes": [

@@ -100,9 +100,12 @@ QVariantList DBReader::fetchData(const QString& addr, quint32 start, quint32 end
 QVariantList DBReader::temperatureLimits(const QString& addr, quint32 start, quint32 duration) {
   MeasurementDatabase db("DBReader::limits");
 
-  MeasurementVector values = db.measurements(db.locationId(addr), "temperature", start, start + duration);
+  QVariantList results {-5.0d, 25.0d};
 
+  MeasurementVector values = db.measurements(db.locationId(addr), "temperature", start, start + duration);
   // qDebug() << "fetched" << values.size() << "values";
+
+  if (values.isEmpty()) return results;
 
   double tmin = 100;
   double tmax = -100;
@@ -112,7 +115,7 @@ QVariantList DBReader::temperatureLimits(const QString& addr, quint32 start, qui
     if (v.value > tmax) tmax = v.value;
   }
 
-  QVariantList results;
-  results << tmin << tmax;
+  results[0] = tmin;
+  results[1] = tmax;
   return results;
 }

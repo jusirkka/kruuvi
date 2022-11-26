@@ -22,6 +22,7 @@ import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
 import kvanttiapina.kruuvi.private 1.0 as KRuuvi
+import org.kde.plasma.core 2.0 as Core
 
 Item {
 
@@ -96,91 +97,75 @@ Item {
   }
 
 
-  GridLayout {
-    columns: 2
-    anchors.left: parent.left
-    anchors.right: parent.right
+  Label {
+    id: headerLabel
+    text: i18n('Devices')
+    font.bold: true
+  }
 
-    Label {
-      text: i18n('Plasmoid version: ') + '0.1'
-      Layout.alignment: Qt.AlignRight
-      Layout.columnSpan: 2
+  TableView {
+    id: devicesTable
+    width: parent.width
+    anchors.top: headerLabel.bottom
+    anchors.topMargin: Core.Units.mediumSpacing
+    model: devicesModel
+
+    TableViewColumn {
+      id: addressCol
+      role: 'address'
+      title: i18n('Address')
+      width: parent.width * 0.3
+
+      delegate: Label {
+        text: styleData.value
+        anchors.left: parent ? parent.left : undefined
+        anchors.leftMargin: 5
+        anchors.right: parent ? parent.right : undefined
+        anchors.rightMargin: 5
+      }
     }
 
-    Label {
-      text: i18n('Devices')
-      font.bold: true
-      Layout.alignment: Qt.AlignLeft
-    }
+    TableViewColumn {
+      role: 'location'
+      title: i18n('Location')
+      width: parent.width * 0.4
 
-    Item {
-      width: 2
-      height: 2
-    }
+      delegate: MouseArea {
 
-    TableView {
-      id: devicesTable
-      width: parent.width
+        anchors.fill: parent
 
-      model: devicesModel
-
-      TableViewColumn {
-        id: addressCol
-        role: 'address'
-        title: i18n('Address')
-        width: parent.width * 0.3
-
-        delegate: Label {
+        Label {
+          id: locationText
           text: styleData.value
-          anchors.left: parent ? parent.left : undefined
+          height: parent.height
+          anchors.left: parent.left
           anchors.leftMargin: 5
-          anchors.right: parent ? parent.right : undefined
+          anchors.right: parent.right
           anchors.rightMargin: 5
         }
-      }
+        cursorShape: Qt.PointingHandCursor
 
-      TableViewColumn {
-        role: 'location'
-        title: i18n('Location')
-        width: parent.width * 0.4
-
-        delegate: MouseArea {
-
-          anchors.fill: parent
-
-          Label {
-            id: locationText
-            text: styleData.value
-            height: parent.height
-            anchors.left: parent.left
-            anchors.leftMargin: 5
-            anchors.right: parent.right
-            anchors.rightMargin: 5
-          }
-          cursorShape: Qt.PointingHandCursor
-
-          onClicked: {
-            locationDialog.open()
-            locationDialog.tableIndex = styleData.row
-            locationField.text = locationText.text
-            locationField.focus = true
-            locationField.selectAll()
-          }
+        onClicked: {
+          locationDialog.open()
+          locationDialog.tableIndex = styleData.row
+          locationField.text = locationText.text
+          locationField.focus = true
+          locationField.selectAll()
         }
       }
+    }
 
-      TableViewColumn {
-        id: enabledCol
-        role: 'enabled'
-        title: i18n('Active')
-        width: parent.width * 0.1
+    TableViewColumn {
+      id: enabledCol
+      role: 'enabled'
+      title: i18n('Active')
+      width: parent.width * 0.1
 
-        delegate: CheckBox {
-          checked: styleData.value
-          onCheckedChanged: {
-            devicesModel.setProperty(styleData.row, 'enabled', checked)
-            devicesModelChanged()
-          }
+      delegate: CheckBox {
+        checked: styleData.value
+        onCheckedChanged: {
+          devicesModel.setProperty(styleData.row, 'enabled', checked)
+          devicesModelChanged()
         }
       }
     }

@@ -61,7 +61,7 @@ RuuviReader::RuuviReader(const QStringList& addresses, QObject *parent)
   d->m_deviceSearchTimer->setInterval(StopScanMSecs);
   connect(d->m_deviceSearchTimer, &QTimer::timeout, [this] () {
     if (d->m_manager->usableAdapter() && d->m_manager->usableAdapter()->isDiscovering()) {
-      // qDebug() << d->m_addresses.first() << "Not found. Stop scan";
+      qWarning() << d->m_addresses.first() << "Not found. Stop scan";
       d->m_manager->usableAdapter()->stopDiscovery();
     }
     d->m_addresses.pop_front();
@@ -126,7 +126,7 @@ void RuuviReader::cleanupAndExit() {
     d->m_tag->disconnectFromDevice();
   }
 
-  // qInfo() << "bye!";
+  qInfo() << "bye!";
   qApp->exit();
 }
 
@@ -191,7 +191,7 @@ void RuuviReader::findDevice() {
   const auto addr = d->m_addresses.first();
   auto p = d->m_manager->deviceForAddress(addr);
   if (p == nullptr) {
-    // qInfo() << addr << "not known, scanning ..";
+    qInfo() << addr << "not known, scanning ..";
     d->m_deviceSearchTimer->start();
     scan();
     return;
@@ -200,12 +200,12 @@ void RuuviReader::findDevice() {
 }
 
 void RuuviReader::connectDevice(BluezQt::DevicePtr p) {
-  // qInfo() << "connecting to" << p->address();
+  qInfo() << "connecting to" << p->address();
   d->m_tag = p;
 
   d->m_errorTimer->start();
   auto call = d->m_tag->connectToDevice();
-  // qInfo() << "connection to" << d->m_tag->address() << "in progress ...";
+  qInfo() << "connection to" << d->m_tag->address() << "in progress ...";
   connect(call, &BluezQt::PendingCall::finished, [this] (const BluezQt::PendingCall* rsp) {
     d->m_errorTimer->stop();
     if (rsp->error()) {
@@ -213,7 +213,7 @@ void RuuviReader::connectDevice(BluezQt::DevicePtr p) {
       cleanupAndExit();
       return;
     }
-    // qInfo() << "connected to" << d->m_tag->address();
+    qInfo() << "connected to" << d->m_tag->address();
     d->m_errorTimer->start();
     for (const auto srv: d->m_tag->gattServices()) {
       setupNUS(srv);
@@ -232,12 +232,12 @@ void RuuviReader::setupNUS(BluezQt::GattServiceRemotePtr srv) {
     // qInfo() << "NUS found";
     for (const auto ch: srv->characteristics()) {
       if (ch->uuid().toUpper() == NUSUUID_RX && d->m_nus_rx == nullptr) {
-        // qInfo() << "NUS_RX found";
+        qInfo() << "NUS_RX found";
         d->m_nus_rx = ch;
         connect(d->m_nus_rx.data(), &BluezQt::GattCharacteristicRemote::valueChanged,
                 this, &RuuviReader::handleRXNotify);
       } else if (ch->uuid().toUpper() == NUSUUID_TX && d->m_nus_tx == nullptr) {
-        // qInfo() << "NUS_TX found";
+        qInfo() << "NUS_TX found";
         d->m_nus_tx = ch;
       }
     }
@@ -254,7 +254,7 @@ void RuuviReader::readLog() {
     cleanupAndExit();
     return;
   }
-  // qInfo() << "Start notify";
+  qInfo() << "Start notify";
   auto rsp = d->m_nus_rx->startNotify();
   rsp->waitForFinished();
   if (rsp->error()) {
@@ -302,7 +302,7 @@ void RuuviReader::handleRXNotify(const QByteArray value) {
   auto ts = read_value<quint32>(stream);
 
   if (src == addr_env && ts == UINT32_MAX) {
-    //qInfo() << "Finished reading log from" << d->m_tag->address();
+    qInfo() << "Finished reading log from" << d->m_tag->address();
     auto rsp = d->m_nus_rx->stopNotify();
     rsp->waitForFinished();
     if (rsp->error()) {
@@ -336,7 +336,7 @@ void RuuviReader::handleRXNotify(const QByteArray value) {
 }
 
 void RuuviReader::disconnectDevice() {
-  // qInfo() << "Disconnect";
+  qInfo() << "Disconnect";
   auto call = d->m_tag->disconnectFromDevice();
   call->waitForFinished();
   d->m_tag = nullptr;
@@ -350,7 +350,7 @@ RuuviReader::~RuuviReader() {
 }
 
 void RuuviReader::updateDB() {
-  // qInfo() << "Update DB";
+  qInfo() << "Update DB";
   MeasurementDatabase db("RuuviReader::updateDB");
   const auto addr = d->m_addresses.first();
   const auto locId = db.locationId(addr);

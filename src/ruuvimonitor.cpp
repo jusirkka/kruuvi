@@ -54,7 +54,7 @@ RuuviEngine::RuuviEngine(QObject* parent, const QVariantList& args)
   });
 
   d->m_refreshTimer = new QTimer(this);
-  d->m_deviceSearchTimer->setSingleShot(false);
+  d->m_refreshTimer->setSingleShot(false);
   d->m_refreshTimer->setInterval(RefreshStep);
   connect(d->m_refreshTimer, &QTimer::timeout, [this] () {
     for (auto it = d->m_updated.begin(); it != d->m_updated.end(); ++it) {
