@@ -254,36 +254,42 @@ void RuuviReader::readLog() {
     cleanupAndExit();
     return;
   }
+
+  d->m_errorTimer->start();
+  auto call = d->m_nus_rx->startNotify();
   qInfo() << "Start notify";
-  auto rsp = d->m_nus_rx->startNotify();
-  rsp->waitForFinished();
-  if (rsp->error()) {
-    qWarning() << "RX start notify failed:" << rsp->errorText();
-    cleanupAndExit();
-    return;
-  }
+  connect(call, &BluezQt::PendingCall::finished, [this] (const BluezQt::PendingCall* rsp) {
+    d->m_errorTimer->stop();
+    if (rsp->error()) {
+      qWarning() << "RX start notify failed:" << rsp->errorText();
+      cleanupAndExit();
+      return;
+    }
 
-  // Get the last timestamp
-  MeasurementDatabase db("RuuviReader::readlog");
-  const auto ts = db.timestamp(db.locationId(d->m_addresses.first()), "temperature");
+    // Get the last timestamp
+    MeasurementDatabase db("RuuviReader::readlog");
+    const auto ts = db.timestamp(db.locationId(d->m_addresses.first()), "temperature");
 
-  QByteArray bytes;
-  QDataStream stream(&bytes, QIODevice::WriteOnly);
-  stream.setByteOrder(QDataStream::BigEndian);
-  const char header[3] = {addr_env, addr_env, op_req};
-  stream.writeRawData(header, 3);
-  const quint32 now = static_cast<quint32>(QDateTime::currentSecsSinceEpoch());
-  const quint32 then = std::max(0, static_cast<int>(ts) - 3600); // one hour offset for safety
-  stream << now;
-  stream << then;
+    QByteArray bytes;
+    QDataStream stream(&bytes, QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::BigEndian);
+    const char header[3] = {addr_env, addr_env, op_req};
+    stream.writeRawData(header, 3);
+    const quint32 now = static_cast<quint32>(QDateTime::currentSecsSinceEpoch());
+    const quint32 then = std::max(0, static_cast<int>(ts) - 3600); // one hour offset for safety
+    stream << now;
+    stream << then;
 
-  // qDebug() << bytes;
-  auto tx_rsp = d->m_nus_tx->writeValue(bytes, QVariantMap());
-  tx_rsp->waitForFinished();
-  if (tx_rsp->error()) {
-    qWarning() << "Error when writing:" << tx_rsp->errorText();
-    cleanupAndExit();
-  }
+    // qDebug() << bytes;
+    d->m_errorTimer->start();
+    auto tx_rsp = d->m_nus_tx->writeValue(bytes, QVariantMap());
+    tx_rsp->waitForFinished();
+    d->m_errorTimer->stop();
+    if (tx_rsp->error()) {
+      qWarning() << "Error when writing:" << tx_rsp->errorText();
+      cleanupAndExit();
+    }
+  });
 }
 
 void RuuviReader::handleRXNotify(const QByteArray value) {
@@ -303,8 +309,10 @@ void RuuviReader::handleRXNotify(const QByteArray value) {
 
   if (src == addr_env && ts == UINT32_MAX) {
     qInfo() << "Finished reading log from" << d->m_tag->address();
+    d->m_errorTimer->start();
     auto rsp = d->m_nus_rx->stopNotify();
     rsp->waitForFinished();
+    d->m_errorTimer->stop();
     if (rsp->error()) {
       qWarning() << "RX stop notify failed:" << rsp->errorText();
     }

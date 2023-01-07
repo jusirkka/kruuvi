@@ -23,7 +23,7 @@ import org.kde.plasma.configuration 2.0
 ConfigModel {
   ConfigCategory {
     name: i18n('General')
-    icon: Qt.resolvedUrl('../images/ruuvi.png').replace('file://', '')
+    icon: 'ruuvitag'
     source: '../config/ConfigGeneral.qml'
   }
 }
